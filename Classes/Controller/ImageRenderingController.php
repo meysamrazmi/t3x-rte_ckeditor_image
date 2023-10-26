@@ -147,7 +147,7 @@ class ImageRenderingController extends AbstractPlugin
         }
 
         // Image template; empty attributes are removed by 3rd param 'false'
-        $img = '<img ' . GeneralUtility::implodeAttributes($imageAttributes, true) . ' />';
+        $img = '<img ' . GeneralUtility::implodeAttributes($imageAttributes, true, true) . ' />';
 
         // Popup rendering (support new `zoom` and legacy `clickenlarge` attributes)
         if (

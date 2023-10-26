@@ -23,6 +23,7 @@ use TYPO3\CMS\Core\Resource\Service\MagicImageService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\HttpUtility;
 use TYPO3\CMS\Recordlist\Controller\ElementBrowserController;
+use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
 
 /**
  * Controller for the image select wizard.
@@ -36,7 +37,7 @@ class SelectImageController extends ElementBrowserController
     /**
      * @var bool
      */
-    protected bool $isInfoAction;
+    protected bool $isInfoAction = false;
 
     /**
      * @var ResourceFactory
@@ -59,21 +60,21 @@ class SelectImageController extends ElementBrowserController
     public function __construct()
     {
         // No dependency injection available here. :(
-        $this->resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
-        $this->richText = GeneralUtility::makeInstance(Richtext::class);
-        $this->magicImageService = GeneralUtility::makeInstance(MagicImageService::class);
-
-        $this->isInfoAction = GeneralUtility::_GP('action') === 'info';
-
-        if (!$this->isInfoAction) {
-            /** @var array $bparams */
-            $bparams = explode('|', GeneralUtility::_GET('bparams'));
-
-            if (isset($bparams[3]) && ($bparams[3] === '')) {
-                $bparams[3] = $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext'];
-                $_GET['bparams'] = implode('|', $bparams);
-            }
-        }
+//        $this->resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
+//        $this->richText = GeneralUtility::makeInstance(Richtext::class);
+//        $this->magicImageService = GeneralUtility::makeInstance(MagicImageService::class);
+//
+//        $this->isInfoAction = GeneralUtility::_GP('action') === 'info';
+//
+//        if (!$this->isInfoAction) {
+//            /** @var array $bparams */
+//            $bparams = explode('|', GeneralUtility::_GET('bparams'));
+//
+//            if (isset($bparams[3]) && ($bparams[3] === '')) {
+//                $bparams[3] = $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext'];
+//                $_GET['bparams'] = implode('|', $bparams);
+//            }
+//        }
     }
 
     /**
@@ -85,7 +86,25 @@ class SelectImageController extends ElementBrowserController
      */
     public function mainAction(ServerRequestInterface $request): ResponseInterface
     {
-        return $this->isInfoAction ? $this->infoAction($request) : parent::mainAction($request);
+        $this->resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
+        $this->richText = GeneralUtility::makeInstance(Richtext::class);
+        $this->magicImageService = GeneralUtility::makeInstance(MagicImageService::class);
+
+        $isInfoAction = GeneralUtility::_GP('action') === 'info';
+        $queryParams = $request->getQueryParams();
+
+        if (!$isInfoAction) {
+            $bparams = explode('|', $queryParams['bparams']);
+
+            if (isset($bparams[3]) && ($bparams[3] === '')) {
+                $bparams[3] = $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext'];
+                $queryParams['bparams'] = implode('|', $bparams);
+            }
+        }
+
+        $request = $request->withQueryParams($queryParams);
+
+        return $isInfoAction ? $this->infoAction($request) : parent::mainAction($request);
     }
 
     /**
@@ -98,7 +117,9 @@ class SelectImageController extends ElementBrowserController
     public function infoAction(ServerRequestInterface $request): ResponseInterface
     {
         $id     = $request->getQueryParams()['fileId'];
+        $table     = $request->getQueryParams()['table'];
         $params = $request->getQueryParams()['P'] ?? [];
+        $params['table'] = $table;
 
         if (!$id || !is_numeric($id)) {
             header(HttpUtility::HTTP_STATUS_412);
@@ -176,20 +197,19 @@ class SelectImageController extends ElementBrowserController
      */
     protected function processImage(File $file, array $params): ProcessedFile
     {
-        $rteConfiguration = $this->richText
-            ->getConfiguration(
-                $params['table'],
-                $params['fieldName'],
-                (int) $params['pid'],
-                $params['recordType'],
-                [
-                    'richtext' => true,
+        // TODO: Get this from page ts config
+        $this->magicImageService->setMagicImageMaximumDimensions([
+            'buttons.' => [
+                'image.' => [
+                    'options.' => [
+                        'magic.' => [
+                            'maxWidth' => 1920,
+                            'maxHeight' => 9999,
+                        ]
+                    ]
                 ]
-            );
-
-        // Use the page tsConfig to set he maximum dimensions
-        $this->magicImageService
-            ->setMagicImageMaximumDimensions($rteConfiguration);
+            ]
+        ]);
 
         return $this->magicImageService
             ->createMagicImage(
