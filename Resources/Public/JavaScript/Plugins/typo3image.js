@@ -510,7 +510,7 @@ export default class Typo3Image extends Core.Plugin {
         });
 
 
-        editor.ui.componentFactory.add('image', () => {
+         const imageButton = function () {
             const button = new UI.ButtonView();
 
             button.set({
@@ -549,7 +549,10 @@ export default class Typo3Image extends Core.Plugin {
             });
 
             return button;
-        });
+        };
+
+        editor.ui.componentFactory.add('image', imageButton);
+        editor.ui.componentFactory.add('typo3image', imageButton);
 
         editor.listenTo(editor.editing.view.document, 'dblclick', (event, data) => {
             const modelElement = editor.editing.mapper.toModelElement(data.target);
