@@ -16,13 +16,14 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Configuration\Richtext;
 use TYPO3\CMS\Core\Http\JsonResponse;
+use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\Service\MagicImageService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\HttpUtility;
-use TYPO3\CMS\Recordlist\Controller\ElementBrowserController;
+use TYPO3\CMS\Backend\Controller\ElementBrowserController;
 use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
 
 /**
@@ -53,29 +54,6 @@ class SelectImageController extends ElementBrowserController
      * @var MagicImageService
      */
     private MagicImageService $magicImageService;
-
-    /**
-     * Constructor.
-     */
-    public function __construct()
-    {
-        // No dependency injection available here. :(
-//        $this->resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
-//        $this->richText = GeneralUtility::makeInstance(Richtext::class);
-//        $this->magicImageService = GeneralUtility::makeInstance(MagicImageService::class);
-//
-//        $this->isInfoAction = GeneralUtility::_GP('action') === 'info';
-//
-//        if (!$this->isInfoAction) {
-//            /** @var array $bparams */
-//            $bparams = explode('|', GeneralUtility::_GET('bparams'));
-//
-//            if (isset($bparams[3]) && ($bparams[3] === '')) {
-//                $bparams[3] = $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext'];
-//                $_GET['bparams'] = implode('|', $bparams);
-//            }
-//        }
-    }
 
     /**
      * Forward to infoAction if wanted
@@ -219,5 +197,10 @@ class SelectImageController extends ElementBrowserController
                     'height' => (int) ($params['height'] ?? $file->getProperty('height')),
                 ]
             );
+    }
+
+    private function getLanguageService(): LanguageService
+    {
+        return $GLOBALS['LANG'];
     }
 }
