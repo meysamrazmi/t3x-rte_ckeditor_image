@@ -58,6 +58,11 @@ Add issues or explore the project on [GitHub](https://github.com/netresearch/t3x
       config:
         # RTE default config removes image plugin - restore it:
         removePlugins: null
+   
+        # you need to use `typo3image` in case `image` didn't work in typo3 v12
+        toolbar:
+          items:
+            - typo3image
     ```
 
 4. Enable RTE config preset (e.g. `default`)
